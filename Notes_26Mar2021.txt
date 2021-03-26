@@ -1,0 +1,203 @@
+How can we retain some information across multiple pages in a web application?
+	using session	(correct)
+
+	
+in spring controller
+	public String method1(HttpServletRequest request)
+	{
+		HttpSession session=request.getSession();
+		session.setAttribute("user",user);
+	}
+
+
+
+
+suppose there are many controller classes in a project:
+
+	EmployeeController
+	DepartmentController
+	CustomerController
+	ProductController
+
+
+
+in EmployeeController:
+	@GetMapping("/add")
+	public String home(){...
+
+
+
+
+
+in DepartmentController:
+	@GetMapping("/add")
+	public String home(){...
+
+
+	across all controllers, the url mapping should be unique
+
+	to solve this problem,
+	define an url mapping for the "class" first	(usually we mapped for methods right?)
+
+
+@RequestMapping("/employee")
+public class Employee
+{
+	@GetMapping("/add")					//this will be like		/employee/add
+	public String home(){...
+	
+}
+
+
+/employee/add	
+	is different from
+/department/add
+
+
+
+
+Method1:
+---------
+	@RequestMapping("/validate")
+	public String validate(String username, String password, HttpServletRequest request)
+	{
+		//store the username in session
+		HttpSession session = request.getSession();
+		session.setAttribute("username", username);
+		return "home";
+	}
+
+
+Method2:
+---------
+	@RequestMapping("/validate")
+	public String validate(String username, String password, HttpSession session)
+	{
+		//store the username in session
+//		HttpSession session = request.getSession();
+		session.setAttribute("username", username);
+		return "home";
+	}
+
+
+
+
+
+In Expression language	${}		session object is "sessionScope"
+	${session.username}	this is not allowed
+	${sessionScope.username} this is correct
+	${username}		this is also equivalent to 		session.getAttribute("username") in java
+
+
+
+suppose in scriplet we want to set or get session attribute,
+
+<%
+	session.getAttribute(......
+
+%>
+
+
+Method 3:
+----------
+	@RequestMapping("/validate")
+	public String validate(String username, String password, ModelMap model)
+	{
+		model.addAttribute("username", username);
+//		model.addAttribute("key", "value");			//
+		return "home";
+	}
+
+model.addAttribute(String, Object);			///
+
+The object can be any type, scalar or collection or anything
+
+for ex:
+	List<Associate> can be stored in model map
+
+so that in jsp page, we can use forEach to display table
+
+Task:
+	create a mvc project that accepts user name and password.
+	the controller should store the username in the model map, before redirecting it to the home page
+
+	the home page should display "Welcome " with user name
+
+Method 4:
+---------
+	@PostMapping("/validate")
+	public ModelAndView validate(String username, String password)
+	{
+		ModelAndView mv=new ModelAndView();
+		mv.addObject("username", username);
+		mv.addObject("role", "admin");
+		mv.setViewName("home");
+		return mv;
+	}
+
+if the controller method returns only view,
+	then the return type is String
+
+Some times, if there is a condition
+	condition is true,
+		add something to model
+		view name is "success"
+	condition is false,
+		add something else to model
+		view name is "failure" in this situation
+
+
+
+Task:
+The controller home "/" url should obtain all the entities and store them in model
+	use ModelAndView 
+the index page should display all entities in tabular format.
+
+
+------------------------------------------------
+Spring forms
+------------
+	spring forms is a tag library
+	used in JSP file
+	using taglib directive
+
+
+
+
+in controller,
+	model.addObject("branch",new Branch());
+
+------------------
+Task:
+	Create a controller method "get mapping" to display a form
+	use model and view
+		add object "branch" to the model
+	
+	in the form, add model attribute (same name as the model object) as "branch"
+	
+	when you submit the form, the model attribute object is captured by the controller method
+		the controller method has an argument "branch"
+	
+	display the captured object values (use ResponseBody annotation)
+
+
+
+Task:
+	now in controller, add method,	
+	use dao to add a new branch
+	before redirecting to same jsp page,
+		add "branches" list to the model and redirect
+
+
+
+Date
+Select	drop down list
+File upload
+
+	<form:select path="bid" class="form-control">
+    		<form:options items="${branches }" itemValue="bid" itemLabel="bid" />
+    	</form:select>
+
+How to accept date in Spring mvc forms?
+
+--------------------------------
